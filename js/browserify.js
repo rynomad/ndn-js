@@ -32,24 +32,40 @@ var exports = ndn;
 // Factory method to create hasher objects
 exports.createHash = function(alg)
 {
-  if (alg != 'sha256')
-    throw new Error('createHash: unsupported algorithm.');
 
   var obj = {};
 
-  obj.md = new KJUR.crypto.MessageDigest({alg: "sha256", prov: "cryptojs"});
+  if (alg != 'sha256')
+    throw new Error('createHash: unsupported algorithm.');
 
-  obj.update = function(buf) {
-    this.md.updateHex(buf.toString('hex'));
-  };
+  if(crypto.subtle && window.location.protocol === "https:"){
+    var toDigest;
+    obj.update = function(buf){
+      toDigest = buf;
+    }
 
-  obj.digest = function() {
-    return new Buffer(this.md.digest(), 'hex');
-  };
+    obj.digest = function(cb){
+      var done = false
+      return crypto.subtle.digest({name:"SHA-256"}, toDigest).then(function(result){
+        cb(new Buffer(new Uint8Array(result)));
+      })
+    }
+  } else {
+    obj.md = new KJUR.crypto.MessageDigest({alg: "sha256", prov: "cryptojs"});
+
+    obj.update = function(buf) {
+      this.md.updateHex(buf.toString('hex'));
+    };
+
+    obj.digest = function() {
+      return new Buffer(this.md.digest(), 'hex');
+    };
+  }
 
   return obj;
 };
 
+var privateKey = false;
 // Factory method to create RSA signer objects
 exports.createSign = function(alg)
 {
@@ -58,22 +74,50 @@ exports.createSign = function(alg)
 
   var obj = {};
 
-  obj.arr = [];
+  if(crypto.subtle && window.location.protocol === "https:"){
+    var toSign;
+    obj.update = function(buf){
+      toSign = buf;
+    }
 
-  obj.update = function(buf) {
-    this.arr.push(buf);
-  };
+    obj.sign = function(keypem, cb){
+      if (!privateKey){
+        var done = false
+        var key = new ndn.Key()
+        key.fromPemString(null, keypem)
+        der = key.privateToDER()
+        crypto.subtle.importKey("raw", der, { name: "RSASSA-PKCS1-v1_5", hash: {name: "SHA-256"} }, true, ["sign"]).then(function(result){
+          privateKey = result
+          return crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5"}, privateKey, toSign )
+        }).then(function(signature){
+          cb(new Buffer(new Uint8Array(signature)));
+        })
+      } else {
+        crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5"}, privateKey, toSign ).then(function(signature){
+          cb(new Buffer(new Uint8Array(signature)));
+        })
+      }
 
-  obj.sign = function(keypem) {
-    var rsa = new RSAKey();
-    rsa.readPrivateKeyFromPEMString(keypem);
-    var signer = new KJUR.crypto.Signature({alg: "SHA256withRSA", prov: "cryptojs/jsrsa"});
-    signer.initSign(rsa);
-    for (var i = 0; i < this.arr.length; ++i)
-      signer.updateHex(this.arr[i].toString('hex'));
+    }
+  } else {
 
-    return new Buffer(signer.sign(), 'hex');
-  };
+    obj.arr = [];
+
+    obj.update = function(buf) {
+      this.arr.push(buf);
+    };
+
+    obj.sign = function(keypem) {
+      var rsa = new RSAKey();
+      rsa.readPrivateKeyFromPEMString(keypem);
+      var signer = new KJUR.crypto.Signature({alg: "SHA256withRSA", prov: "cryptojs/jsrsa"});
+      signer.initSign(rsa);
+      for (var i = 0; i < this.arr.length; ++i)
+        signer.updateHex(this.arr[i].toString('hex'));
+
+      return new Buffer(signer.sign(), 'hex');
+    };
+  }
 
   return obj;
 };
