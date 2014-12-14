@@ -89,7 +89,7 @@ var Data = function Data(nameOrData, metaInfoOrContent, arg3)
 
     this.signature = new Sha256WithRsaSignature();
     this.wireEncoding = new SignedBlob();
-  }  
+  }
 };
 
 exports.Data = Data;
@@ -204,9 +204,18 @@ Data.prototype.setContent = function(content)
   return this;
 };
 
-Data.prototype.sign = function(wireFormat)
+Data.prototype.sign = function(wireFormatOrCallback, arg2)
 {
-  wireFormat = (wireFormat || WireFormat.getDefaultWireFormat());
+  var wireFormat, cb;
+
+  if (arg2){
+    wireFormat = wireFormatOrCallback;
+    cb = arg2;
+  } else if (wireFormatOrCallback instanceof WireFormat){
+    wireFormat = wireFormatOrCallback;
+  } else {
+    cb = wireFormatOrCallback;
+  }
 
   if (this.getSignatureOrMetaInfoKeyLocator() == null ||
       this.getSignatureOrMetaInfoKeyLocator().getType() == null)
@@ -220,10 +229,18 @@ Data.prototype.sign = function(wireFormat)
   }
   var rsa = Crypto.createSign('RSA-SHA256');
   rsa.update(this.wireEncoding.signedBuf());
+  var self = this;
+  if (cb){
+    rsa.sign(globalKeyManager.privateKey, function(sig){
+      self.signature.setSignature(sig)
+      cb(self)
+    })
+  } else {
 
-  var sig = new Buffer
-    (DataUtils.toNumbersIfString(rsa.sign(globalKeyManager.privateKey)));
-  this.signature.setSignature(sig);
+    var sig = new Buffer
+      (DataUtils.toNumbersIfString(rsa.sign(globalKeyManager.privateKey)));
+    this.signature.setSignature(sig);
+  }
 };
 
 // The first time verify is called, it sets this to determine if a signature
@@ -311,8 +328,8 @@ Data.prototype.getSignatureOrMetaInfoKeyLocator = function()
   if (this.signedInfo != null && this.signedInfo.locator != null &&
       this.signedInfo.locator.getType() != null &&
       this.signedInfo.locator.getType() >= 0) {
-    console.log("WARNING: Temporarily using the key locator found in the MetaInfo - expected it in the Signature object.");
-    console.log("WARNING: In the future, the key locator in the Signature object will not be supported.");
+    //console.log("WARNING: Temporarily using the key locator found in the MetaInfo - expected it in the Signature object.");
+    //console.log("WARNING: In the future, the key locator in the Signature object will not be supported.");
     return this.signedInfo.locator;
   }
 

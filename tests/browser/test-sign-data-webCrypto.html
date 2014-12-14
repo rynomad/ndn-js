@@ -1,0 +1,76 @@
+<?xml version = "1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"DTD/xhtml1-strict.dtd">
+<!--
+ * Copyright (C) 2014 Regents of the University of California.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * A copy of the GNU Lesser General Public License is in the file COPYING.
+-->
+<html xmlns = "https://www.w3.org/1999/xhtml">
+
+<head>
+  <title>Test SHA-256</title>
+
+  <script src="https://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
+  <script type="text/javascript">
+    // Save a pointer to the downloaded reference CryptoJS, then set it null so ndn.js can define it again.
+    var referenceCryptoJS = CryptoJS;
+    CryptoJS = null;
+  </script>
+
+  <script type="text/javascript" src="../../build/ndn.js"></script>
+
+  <script type="text/javascript">
+  var iterations = 0, t1, input;
+  window.numberOfSignatures = 1000
+   var testLoop = function testLoop(signedData){
+      if (iterations < numberOfSignatures ){
+        iterations++;
+      } else {
+        console.log(signedData, (1000 * numberOfSignatures/(Date.now()- t1)))
+
+      }
+    }
+    function bootstrap(){
+
+      input = document.getElementById('contentname').value;
+      var d = new ndn.Data(new ndn.Name("test/name"), new Uint8Array(8000));
+      d.sign(sign) // make sure we have a key
+    }
+    function sign(){
+      input = document.getElementById('contentname').value;
+      iterations = 0;
+      var d = new ndn.Data(new ndn.Name("test/name"), new Uint8Array(8000));
+      t1 = Date.now() ;
+      for(var i = 0; i <= numberOfSignatures; i++){
+        d.sign(testLoop)
+      }
+      console.log("number of sign() per second to call " + (1000 * numberOfSignatures)/(Date.now() - t1));
+
+
+    }
+  </script>
+
+</head>
+<body >
+  <form>
+    Please Enter Text to Hash:<br /><input id="contentname" type="text" name="CONTENTNAME" value="/ndn/abc" /> <br />
+  </form>
+  <button onclick="bootstrap()">Hash</button>
+
+    <p id="result"></p>
+
+</body>
+</html>

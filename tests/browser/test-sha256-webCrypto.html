@@ -18,48 +18,62 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * A copy of the GNU Lesser General Public License is in the file COPYING.
 -->
-<html xmlns = "http://www.w3.org/1999/xhtml">
+<html xmlns = "https://www.w3.org/1999/xhtml">
 
 <head>
-	<title>Test SHA-256</title>
+  <title>Test SHA-256</title>
 
-	<script src="http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
-	<script type="text/javascript">
+  <script src="https://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
+  <script type="text/javascript">
     // Save a pointer to the downloaded reference CryptoJS, then set it null so ndn.js can define it again.
     var referenceCryptoJS = CryptoJS;
     CryptoJS = null;
-	</script>
+  </script>
 
   <script type="text/javascript" src="../../build/ndn.js"></script>
 
-	<script type="text/javascript">
-		function hash(){
-			var input = document.getElementById('contentname').value;
+  <script type="text/javascript">
+  var iterations = 1, t1, input;
+  function testLoop(resultBuffer){
+      if (iterations < 100000){
+        iterations++;
+      } else {
+
+        var output  = "from bytes-- " + resultBuffer.toString("hex") + "<br/>";
+        output += (100000 * 1000)/(Date.now()-t1)+ "seconds: reference---- " + referenceCryptoJS.SHA256(input);
+
+        document.getElementById('result').innerHTML = output;
+
+      }
+    }
+    function hash(){
+      input = document.getElementById('contentname').value;
 
       var data = ndn.DataUtils.toNumbersFromString(input);
-      var t1 = Date.now()
+
+      t1 = Date.now() ;
       for(var i = 0; i < 100000; i++){
-
-        var sha256 = ndn.createHash('sha256')
+        var sha256 = ndn.createHash('sha256');
         sha256.update(data);
-        sha256.digest();
+        sha256.digest(testLoop)
       }
-			var output  = (100000 * 1000)/(Date.now()-t1)+"from bytes-- " + ndn.DataUtils.toHex(sha256.digest()) + "<br/>";
+      console.log((1000 * 100000)/(Date.now() - t1));
 
-			output += "reference---- " + referenceCryptoJS.SHA256(input);
+      // Call update multiple times in small chunks to test the buffering.
+      var chunkSize = 3;
+      var nCalls = Math.floor(data / chunkSize);
 
-			document.getElementById('result').innerHTML = output;
-		}
-	</script>
+    }
+  </script>
 
 </head>
 <body >
-	<form>
-		Please Enter Text to Hash:<br /><input id="contentname" type="text" name="CONTENTNAME" value="/ndn/abc" /> <br />
-	</form>
-	<button onclick="hash()">Hash</button>
+  <form>
+    Please Enter Text to Hash:<br /><input id="contentname" type="text" name="CONTENTNAME" value="/ndn/abc" /> <br />
+  </form>
+  <button onclick="hash()">Hash</button>
 
-		<p id="result"></p>
+    <p id="result"></p>
 
 </body>
 </html>

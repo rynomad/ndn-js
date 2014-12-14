@@ -24,6 +24,8 @@ var b64tohex = require('../contrib/securityLib/base64.js').b64tohex
 
 // Library namespace
 var ndn = ndn || {};
+
+var key ;
 ndn.Key = require("./key.js").Key
 
 var exports = ndn;
@@ -38,15 +40,15 @@ exports.createHash = function(alg)
   if (alg != 'sha256')
     throw new Error('createHash: unsupported algorithm.');
 
-  if(crypto.subtle && window.location.protocol === "https:"){
-    var toDigest;
+  if(crypto.subtle && location.protocol === "https:"){
+    var toDigest = new Buffer(0);
     obj.update = function(buf){
-      toDigest = buf;
+      toDigest = Buffer.concat([toDigest, buf]);
     }
 
     obj.digest = function(cb){
-      var done = false
-      return crypto.subtle.digest({name:"SHA-256"}, toDigest).then(function(result){
+      var done = false;
+      return crypto.subtle.digest({name:"SHA-256"}, toDigest.buffer).then(function(result){
         cb(new Buffer(new Uint8Array(result)));
       })
     }
@@ -74,30 +76,30 @@ exports.createSign = function(alg)
 
   var obj = {};
 
-  if(crypto.subtle && window.location.protocol === "https:"){
+  if(crypto.subtle && location.protocol === "https:"){
     var toSign;
+
     obj.update = function(buf){
       toSign = buf;
     }
 
     obj.sign = function(keypem, cb){
       if (!privateKey){
-        var done = false
-        var key = new ndn.Key()
-        key.fromPemString(null, keypem)
-        der = key.privateToDER()
-        crypto.subtle.importKey("raw", der, { name: "RSASSA-PKCS1-v1_5", hash: {name: "SHA-256"} }, true, ["sign"]).then(function(result){
-          privateKey = result
-          return crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5"}, privateKey, toSign )
-        }).then(function(signature){
-          cb(new Buffer(new Uint8Array(signature)));
-        })
+        crypto.subtle.generateKey(
+          { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, hash:{name:"SHA-256"}, publicExponent: new Uint8Array([0x01, 0x00, 0x01]) },
+            true,
+            ["sign"]).then(function(result){
+              privateKey = result.privateKey;
+              return crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, result.privateKey, toSign);
+        }).then(function(signedArrayBuffer){
+          cb(new Buffer(new Uint8Array(signedArrayBuffer)));
+        });
       } else {
-        crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5"}, privateKey, toSign ).then(function(signature){
+        crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, privateKey, toSign).then(function(signature){
+
           cb(new Buffer(new Uint8Array(signature)));
         })
       }
-
     }
   } else {
 

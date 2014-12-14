@@ -18,48 +18,54 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * A copy of the GNU Lesser General Public License is in the file COPYING.
 -->
-<html xmlns = "http://www.w3.org/1999/xhtml">
+<html xmlns = "https://www.w3.org/1999/xhtml">
 
 <head>
-	<title>Test SHA-256</title>
+  <title>Test SHA-256</title>
 
-	<script src="http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
-	<script type="text/javascript">
+  <script src="https://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
+  <script type="text/javascript">
     // Save a pointer to the downloaded reference CryptoJS, then set it null so ndn.js can define it again.
     var referenceCryptoJS = CryptoJS;
     CryptoJS = null;
-	</script>
+  </script>
 
   <script type="text/javascript" src="../../build/ndn.js"></script>
 
-	<script type="text/javascript">
-		function hash(){
-			var input = document.getElementById('contentname').value;
+  <script type="text/javascript">
+  var iterations = 0, t1, input;
+  window.numberOfSignatures = 1000
+   var testLoop = function testLoop(signedData){
+      if (iterations < numberOfSignatures ){
+        iterations++;
+      } else {
+        console.log(signedData, (1000 * numberOfSignatures/(Date.now()- t1)))
 
-      var data = ndn.DataUtils.toNumbersFromString(input);
-      var t1 = Date.now()
-      for(var i = 0; i < 100000; i++){
-
-        var sha256 = ndn.createHash('sha256')
-        sha256.update(data);
-        sha256.digest();
       }
-			var output  = (100000 * 1000)/(Date.now()-t1)+"from bytes-- " + ndn.DataUtils.toHex(sha256.digest()) + "<br/>";
+    }
+    function sign(){
+      input = document.getElementById('contentname').value;
+      iterations = 0;
+      var d = new ndn.Data(new ndn.Name("test/name"), new Uint8Array(8000));
+      t1 = Date.now() ;
+      console.log("begin")
+      for(var i = 0; i <= numberOfSignatures; i++){
+        d.sign()
+      }
+      console.log("number of sign() per second to call " + (1000 * numberOfSignatures)/(Date.now() - t1));
 
-			output += "reference---- " + referenceCryptoJS.SHA256(input);
 
-			document.getElementById('result').innerHTML = output;
-		}
-	</script>
+    }
+  </script>
 
 </head>
 <body >
-	<form>
-		Please Enter Text to Hash:<br /><input id="contentname" type="text" name="CONTENTNAME" value="/ndn/abc" /> <br />
-	</form>
-	<button onclick="hash()">Hash</button>
+  <form>
+    Please Enter Text to Hash:<br /><input id="contentname" type="text" name="CONTENTNAME" value="/ndn/abc" /> <br />
+  </form>
+  <button onclick="sign()">Hash</button>
 
-		<p id="result"></p>
+    <p id="result"></p>
 
 </body>
 </html>

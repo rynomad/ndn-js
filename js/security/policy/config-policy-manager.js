@@ -29,7 +29,7 @@ var IdentityCertificate = require('../certificate/identity-certificate.js').Iden
 var BoostInfoParser = require('../../util/boost-info-parser.js').BoostInfoParser;
 var NdnRegexMatcher = require('../../util/ndn-regex-matcher.js').NdnRegexMatcher;
 var CertificateCache = require('./certificate-cache.js').CertificateCache;
-var ValidationRequest = require('./Validation-request.js').ValidationRequest;
+var ValidationRequest = require('./validation-request.js').ValidationRequest;
 var PolicyManager = require('./policy-manager.js').PolicyManager;
 
 /**
@@ -247,7 +247,7 @@ ConfigPolicyManager.prototype.checkVerificationPolicy = function
 
     return nextStep;
   }
-  
+
   // For interests, we must check that the timestamp is fresh enough.
   // We do this after (possibly) downloading the certificate to avoid
   // filling the cache with bad keys.
@@ -454,7 +454,7 @@ ConfigPolicyManager.expand = function(match, expansion)
 ConfigPolicyManager.prototype.lookupCertificate = function(certID, isPath)
 {
   var cert;
-  
+
   var cachedCertUri = this.fixedCertificateCache[certID];
   if (cachedCertUri === undefined) {
     if (isPath)
@@ -466,7 +466,7 @@ ConfigPolicyManager.prototype.lookupCertificate = function(certID, isPath)
       cert = new IdentityCertificate();
       cert.wireDecode(certData);
     }
-    
+
     var certUri = cert.getName().getPrefix(-1).toUri();
     this.fixedCertificateCache[certID] = certUri;
     this.certificateCache.insertCertificate(cert);
@@ -490,7 +490,7 @@ ConfigPolicyManager.prototype.findMatchingRule = function(objName, matchType)
   var rules = this.config.getRoot().get("validator/rule");
   for (var iRule = 0; iRule < rules.length; ++iRule) {
     var r = rules[iRule];
-    
+
     if (r.get('for')[0].getValue() == matchType) {
       var passed = true;
       var filters = r.get('filter');
@@ -522,7 +522,7 @@ ConfigPolicyManager.prototype.findMatchingRule = function(objName, matchType)
       }
     }
   }
-  
+
   return null;
 };
 
@@ -582,7 +582,7 @@ ConfigPolicyManager.extractSignature = function(dataOrInterest, wireFormat)
     catch (e) {
       return null;
     }
-    
+
     return signature;
   }
 
@@ -626,7 +626,7 @@ ConfigPolicyManager.prototype.updateTimestampForKey = function
   //   get the keysToErase while counting.
   var keyTimestampsSize = 0;
   var keysToErase = [];
-  
+
   var now = new Date().getTime();
   var oldestTimestamp = now;
   var oldestKey = null;
