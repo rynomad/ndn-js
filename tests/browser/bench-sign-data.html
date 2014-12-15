@@ -55,7 +55,7 @@
           d.sign(testLoop)
         }
         var output  = "crypto.subtle blocked UI for " + (Date.now() - t1)  + " ms<br/>";
-        document.getElementById('result').innerHTML = output;
+        document.getElementById('result').innerHTML =   document.getElementById('result').innerHTML + output;
         console.log("number of sign() per second to call " + (1000 * numberOfSignatures)/(Date.now() - t1));
 
       } else {
@@ -75,7 +75,7 @@
       }
       var t = Date.now() - t1
       var output  = "javascript crypto finished all signings after, and blocked UI for " + t  + " ms ("+ Math.floor((8000 * numberOfSignatures)/t)+" KB/s)<br/>";
-      document.getElementById('result').innerHTML = output;
+      document.getElementById('result').innerHTML =   document.getElementById('result').innerHTML + output;
     }
   </script>
 
