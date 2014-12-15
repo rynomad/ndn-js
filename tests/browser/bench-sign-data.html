@@ -28,7 +28,7 @@
 
   <script type="text/javascript">
   var iterations = 0, t1, input;
-  window.numberOfSignatures = 1000
+  window.numberOfSignatures = 100
    var testLoop = function testLoop(signedData){
       if (iterations < numberOfSignatures ){
         iterations++;
@@ -82,7 +82,7 @@
 </head>
 <body >
   <form>
-    Please Enter Number of Signatures:<br /><input id="contentname" type="text" name="CONTENTNAME" value=1000 /> <br />
+    Please Enter Number of Signatures:<br /><input id="contentname" type="text" name="CONTENTNAME" value=100 /> <br />
   </form>
   <button onclick="signSync()">bench javascript</button><button onclick="signWebCrypto()">bench crypto.subtle</button>
 
