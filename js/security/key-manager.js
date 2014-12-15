@@ -18,6 +18,7 @@
  */
 
 var Key = require('../key.js').Key;
+var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 
 /**
  * @constructor
@@ -84,4 +85,13 @@ KeyManager.prototype.getKey = function()
 }
 
 var globalKeyManager = globalKeyManager || new KeyManager();
+if (USE_WEBCRYPTO_ASYNC){
+  crypto.subtle.generateKey(
+    { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, hash:{name:"SHA-256"}, publicExponent: new Uint8Array([0x01, 0x00, 0x01]) },
+      true,
+      ["sign"]).then(function(result){
+        globalKeyManager.webKey = result.privateKey;
+
+  })
+}
 exports.globalKeyManager = globalKeyManager;

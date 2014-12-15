@@ -32,6 +32,8 @@ var KeyLocator = require('./key-locator.js').KeyLocator;
 var globalKeyManager = require('./security/key-manager.js').globalKeyManager;
 var WireFormat = require('./encoding/wire-format.js').WireFormat;
 
+
+var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 /**
  * Create a new Data with the optional values.  There are 2 forms of constructor:
  * new Data([name] [, content]);
@@ -227,19 +229,23 @@ Data.prototype.sign = function(wireFormatOrCallback, arg2)
     this.getSignature().setSignature(new Buffer(128));
     this.wireEncode(wireFormat);
   }
-  var rsa = Crypto.createSign('RSA-SHA256');
-  rsa.update(this.wireEncoding.signedBuf());
   var self = this;
-  if (cb){
-    rsa.sign(globalKeyManager.privateKey, function(sig){
+  if (USE_WEBCRYPTO_ASYNC && cb){
+
+    var rsa = Crypto.createSign('RSA-SHA256', true);
+    rsa.update(this.wireEncoding.signedBuf());
+    rsa.sign(globalKeyManager.webKey, function(sig){
       self.signature.setSignature(sig)
       cb(self)
     })
   } else {
 
+    var rsa = Crypto.createSign('RSA-SHA256', false);
+    rsa.update(this.wireEncoding.signedBuf());
     var sig = new Buffer
       (DataUtils.toNumbersIfString(rsa.sign(globalKeyManager.privateKey)));
     this.signature.setSignature(sig);
+    if (cb) cb(self);
   }
 };
 

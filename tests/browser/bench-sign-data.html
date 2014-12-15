@@ -21,14 +21,8 @@
 <html xmlns = "https://www.w3.org/1999/xhtml">
 
 <head>
-  <title>Test SHA-256</title>
+  <title>Bench js vs webCrypto</title>
 
-  <script src="https://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/sha256.js"></script>
-  <script type="text/javascript">
-    // Save a pointer to the downloaded reference CryptoJS, then set it null so ndn.js can define it again.
-    var referenceCryptoJS = CryptoJS;
-    CryptoJS = null;
-  </script>
 
   <script type="text/javascript" src="../../build/ndn.js"></script>
 
@@ -39,8 +33,9 @@
       if (iterations < numberOfSignatures ){
         iterations++;
       } else {
-        console.log(signedData, (1000 * numberOfSignatures/(Date.now()- t1)))
-
+        var t = (Date.now() - t1)
+        var output = "crypto.subtle finished all signings after " + t + "ms ("+ Math.floor((numberOfSignatures * 8000)/t)+" KB/s) <br>";
+        document.getElementById('result').innerHTML = document.getElementById('result').innerHTML + output;
       }
     }
     function bootstrap(){
@@ -49,26 +44,47 @@
       var d = new ndn.Data(new ndn.Name("test/name"), new Uint8Array(8000));
       d.sign(sign) // make sure we have a key
     }
-    function sign(){
-      input = document.getElementById('contentname').value;
+    function signWebCrypto(){
+      if (crypto && crypto.subtle && location.protocol === "https:"){
+        numberOfSignatures = parseInt(document.getElementById('contentname').value);
+        iterations = 0;
+        var d = new ndn.Data(new ndn.Name("test/name"), new Uint8Array(8000));
+        t1 = Date.now() ;
+        for(var i = 0; i <= numberOfSignatures; i++){
+
+          d.sign(testLoop)
+        }
+        var output  = "crypto.subtle blocked UI for " + (Date.now() - t1)  + " ms<br/>";
+        document.getElementById('result').innerHTML = output;
+        console.log("number of sign() per second to call " + (1000 * numberOfSignatures)/(Date.now() - t1));
+
+      } else {
+        document.getElementById('result').innerHTML = "Error: either crypto.subtle undefined or not accessing page over https:"
+      }
+
+    }
+
+    function signSync(){
       iterations = 0;
+      numberOfSignatures = parseInt(document.getElementById('contentname').value);
       var d = new ndn.Data(new ndn.Name("test/name"), new Uint8Array(8000));
       t1 = Date.now() ;
       for(var i = 0; i <= numberOfSignatures; i++){
-        d.sign(testLoop)
+
+        d.sign()
       }
-      console.log("number of sign() per second to call " + (1000 * numberOfSignatures)/(Date.now() - t1));
-
-
+      var t = Date.now() - t1
+      var output  = "javascript crypto finished all signings after, and blocked UI for " + t  + " ms ("+ Math.floor((8000 * numberOfSignatures)/t)+" KB/s)<br/>";
+      document.getElementById('result').innerHTML = output;
     }
   </script>
 
 </head>
 <body >
   <form>
-    Please Enter Text to Hash:<br /><input id="contentname" type="text" name="CONTENTNAME" value="/ndn/abc" /> <br />
+    Please Enter Number of Signatures:<br /><input id="contentname" type="text" name="CONTENTNAME" value=1000 /> <br />
   </form>
-  <button onclick="bootstrap()">Hash</button>
+  <button onclick="signSync()">bench javascript</button><button onclick="signWebCrypto()">bench crypto.subtle</button>
 
     <p id="result"></p>
 

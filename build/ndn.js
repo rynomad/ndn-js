@@ -6562,19 +6562,20 @@ var ASN1HEX = require('../contrib/securityLib/asn1hex-1.1.js').ASN1HEX
 var KJUR = require('../contrib/securityLib/crypto-1.0.js').KJUR
 var RSAKey = require('../contrib/securityLib/rsasign-1.2.js').RSAKey
 var b64tohex = require('../contrib/securityLib/base64.js').b64tohex
+var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 
 // Library namespace
 var ndn = ndn || {};
-window.ndn = ndn;
-
+window.Buffer = Buffer
 var key ;
 ndn.Key = require("./key.js").Key
+
 
 var exports = ndn;
 
 
 // Factory method to create hasher objects
-exports.createHash = function(alg)
+exports.createHash = function(alg, async)
 {
 
   var obj = {};
@@ -6582,7 +6583,7 @@ exports.createHash = function(alg)
   if (alg != 'sha256')
     throw new Error('createHash: unsupported algorithm.');
 
-  if(crypto.subtle && window.location.protocol === "https:"){
+  if(USE_WEBCRYPTO_ASYNC && async){
     var toDigest = new Buffer(0);
     obj.update = function(buf){
       toDigest = Buffer.concat([toDigest, buf]);
@@ -6590,7 +6591,7 @@ exports.createHash = function(alg)
 
     obj.digest = function(cb){
       var done = false;
-      return crypto.subtle.digest({name:"SHA-256"}, toDigest.buffer).then(function(result){
+      crypto.subtle.digest({name:"SHA-256"}, toDigest.buffer).then(function(result){
         cb(new Buffer(new Uint8Array(result)));
       })
     }
@@ -6601,47 +6602,35 @@ exports.createHash = function(alg)
       this.md.updateHex(buf.toString('hex'));
     };
 
-    obj.digest = function() {
-      return new Buffer(this.md.digest(), 'hex');
+    obj.digest = function(cb) {
+      cb = cb || function(buf){return buf};
+      return cb(new Buffer(this.md.digest(), 'hex'));
     };
   }
 
   return obj;
 };
 
-window.privateKey = false;
+var privateKey = false;
 // Factory method to create RSA signer objects
-exports.createSign = function(alg)
+exports.createSign = function(alg, async)
 {
   if (alg != 'RSA-SHA256')
     throw new Error('createSign: unsupported algorithm.');
 
   var obj = {};
-
-  if(crypto.subtle && window.location.protocol === "https:"){
+  if(USE_WEBCRYPTO_ASYNC && async){
     var toSign;
 
     obj.update = function(buf){
       toSign = buf;
     }
 
-    obj.sign = function(keypem, cb){
-      if (!privateKey){
-        crypto.subtle.generateKey(
-          { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, hash:{name:"SHA-256"}, publicExponent: new Uint8Array([0x01, 0x00, 0x01]) },
-            true,
-            ["sign"]).then(function(result){
-              window.privateKey = result.privateKey;
-              return crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, result.privateKey, toSign);
-        }).then(function(signedArrayBuffer){
+    obj.sign = function(key, cb){
+      crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, key, toSign)
+        .then(function(signedArrayBuffer){
           cb(new Buffer(new Uint8Array(signedArrayBuffer)));
         });
-      } else {
-        crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, window.privateKey, toSign).then(function(signature){
-
-          cb(new Buffer(new Uint8Array(signature)));
-        })
-      }
     }
   } else {
 
@@ -6651,7 +6640,8 @@ exports.createSign = function(alg)
       this.arr.push(buf);
     };
 
-    obj.sign = function(keypem) {
+    obj.sign = function(keypem, cb) {
+      cb = cb || function(buf){return buf};
       var rsa = new RSAKey();
       rsa.readPrivateKeyFromPEMString(keypem);
       var signer = new KJUR.crypto.Signature({alg: "SHA256withRSA", prov: "cryptojs/jsrsa"});
@@ -6659,7 +6649,7 @@ exports.createSign = function(alg)
       for (var i = 0; i < this.arr.length; ++i)
         signer.updateHex(this.arr[i].toString('hex'));
 
-      return new Buffer(signer.sign(), 'hex');
+      return cb(new Buffer(signer.sign(), 'hex'));
     };
   }
 
@@ -7082,6 +7072,8 @@ var KeyLocator = require('./key-locator.js').KeyLocator;
 var globalKeyManager = require('./security/key-manager.js').globalKeyManager;
 var WireFormat = require('./encoding/wire-format.js').WireFormat;
 
+
+var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 /**
  * Create a new Data with the optional values.  There are 2 forms of constructor:
  * new Data([name] [, content]);
@@ -7277,19 +7269,23 @@ Data.prototype.sign = function(wireFormatOrCallback, arg2)
     this.getSignature().setSignature(new Buffer(128));
     this.wireEncode(wireFormat);
   }
-  var rsa = Crypto.createSign('RSA-SHA256');
-  rsa.update(this.wireEncoding.signedBuf());
   var self = this;
-  if (cb){
-    rsa.sign(globalKeyManager.privateKey, function(sig){
+  if (USE_WEBCRYPTO_ASYNC && cb){
+
+    var rsa = Crypto.createSign('RSA-SHA256', true);
+    rsa.update(this.wireEncoding.signedBuf());
+    rsa.sign(globalKeyManager.webKey, function(sig){
       self.signature.setSignature(sig)
       cb(self)
     })
   } else {
 
+    var rsa = Crypto.createSign('RSA-SHA256', false);
+    rsa.update(this.wireEncoding.signedBuf());
     var sig = new Buffer
       (DataUtils.toNumbersIfString(rsa.sign(globalKeyManager.privateKey)));
     this.signature.setSignature(sig);
+    if (cb) cb(self);
   }
 };
 
@@ -20286,6 +20282,7 @@ KeyChain.prototype.onCertificateInterestTimeout = function
  */
 
 var Key = require('../key.js').Key;
+var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 
 /**
  * @constructor
@@ -20352,6 +20349,15 @@ KeyManager.prototype.getKey = function()
 }
 
 var globalKeyManager = globalKeyManager || new KeyManager();
+if (USE_WEBCRYPTO_ASYNC){
+  crypto.subtle.generateKey(
+    { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, hash:{name:"SHA-256"}, publicExponent: new Uint8Array([0x01, 0x00, 0x01]) },
+      true,
+      ["sign"]).then(function(result){
+        globalKeyManager.webKey = result.privateKey;
+
+  })
+}
 exports.globalKeyManager = globalKeyManager;
 
 },{"../key.js":66}],84:[function(require,module,exports){
