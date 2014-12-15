@@ -31,9 +31,7 @@ var MetaInfo = require('./meta-info.js').MetaInfo;
 var KeyLocator = require('./key-locator.js').KeyLocator;
 var globalKeyManager = require('./security/key-manager.js').globalKeyManager;
 var WireFormat = require('./encoding/wire-format.js').WireFormat;
-
-
-var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
+var USE_WEBCRYPTO_ASYNC = require("./use-web-crypto.js").useWebCrypto;
 /**
  * Create a new Data with the optional values.  There are 2 forms of constructor:
  * new Data([name] [, content]);
@@ -210,6 +208,8 @@ Data.prototype.sign = function(wireFormatOrCallback, arg2)
 {
   var wireFormat, cb;
 
+
+
   if (arg2){
     wireFormat = wireFormatOrCallback;
     cb = arg2;
@@ -230,6 +230,7 @@ Data.prototype.sign = function(wireFormatOrCallback, arg2)
     this.wireEncode(wireFormat);
   }
   var self = this;
+  
   if (USE_WEBCRYPTO_ASYNC && cb){
 
     var rsa = Crypto.createSign('RSA-SHA256', true);

@@ -21,11 +21,10 @@ var ASN1HEX = require('../contrib/securityLib/asn1hex-1.1.js').ASN1HEX
 var KJUR = require('../contrib/securityLib/crypto-1.0.js').KJUR
 var RSAKey = require('../contrib/securityLib/rsasign-1.2.js').RSAKey
 var b64tohex = require('../contrib/securityLib/base64.js').b64tohex
-var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 
+var USE_WEBCRYPTO_ASYNC = require("./use-web-crypto.js").useWebCrypto;
 // Library namespace
 var ndn = ndn || {};
-window.Buffer = Buffer
 var key ;
 ndn.Key = require("./key.js").Key
 
@@ -86,6 +85,7 @@ exports.createSign = function(alg, async)
     }
 
     obj.sign = function(key, cb){
+      console.log("crypto")
       crypto.subtle.sign({ name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, key, toSign)
         .then(function(signedArrayBuffer){
           cb(new Buffer(new Uint8Array(signedArrayBuffer)));

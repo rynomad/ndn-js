@@ -48,4 +48,3 @@ exports.KeyChain = require('./js/security/key-chain.js').KeyChain;
 
 exports.ChronoSync2013 = require('./js/sync/chrono-sync2013.js').ChronoSync2013;
 exports.createHash = require("./js/browserify.js").createHash;
-window.ndn = exports;

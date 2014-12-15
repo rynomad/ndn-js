@@ -18,8 +18,8 @@
  */
 
 var Key = require('../key.js').Key;
-var USE_WEBCRYPTO_ASYNC = (crypto && crypto.subtle && location.protocol === "https:") ? true : false;
 
+var USE_WEBCRYPTO_ASYNC = require("../use-web-crypto.js").useWebCrypto;
 /**
  * @constructor
  */

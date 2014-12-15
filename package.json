@@ -19,7 +19,8 @@
   ],
   "browser": {
     "./js/crypto.js": "./js/browserify.js",
-    "./js/transport/tcp-transport.js": "./js/browserify-tcp-transport.js"
+    "./js/transport/tcp-transport.js": "./js/browserify-tcp-transport.js",
+    "./js/use-web-crypto.js":"./js/browser-crypto-checker.js"
   },
   "author": "UCLA",
   "license": "LGPL-3.0+",

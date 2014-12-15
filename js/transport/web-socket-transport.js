@@ -114,8 +114,12 @@ WebSocketTransport.prototype.connect = function
   (connectionInfo, elementListener, onopenCallback, onclosedCallback)
 {
   this.close();
+  if (location.protocol === "https:"){
+    this.ws = new WebSocket('wss://' + connectionInfo.host + ':' + connectionInfo.port);
+  } else {
+    this.ws = new WebSocket('ws://' + connectionInfo.host + ':' + connectionInfo.port);
+  }
 
-  this.ws = new WebSocket('ws://' + connectionInfo.host + ':' + connectionInfo.port);
   if (LOG > 0) console.log('ws connection created.');
     this.connectionInfo = connectionInfo;
 
@@ -210,4 +214,3 @@ WebSocketTransport.prototype.close = function()
   if (this.ws != null)
     delete this.ws;
 }
-
