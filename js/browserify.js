@@ -41,6 +41,7 @@ exports.createHash = function(alg)
 
   obj.update = function(buf) {
     this.md.updateHex(buf.toString('hex'));
+    return this;
   };
 
   obj.digest = function() {

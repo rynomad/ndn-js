@@ -48,6 +48,7 @@ exports.ElementReader = ElementReader;
 ElementReader.prototype.onReceivedData = function(/* Buffer */ data)
 {
   // Process multiple objects in the data.
+  //console.log("in element reader")
   while (true) {
     var gotElementEnd;
     var offset;
@@ -101,7 +102,7 @@ ElementReader.prototype.onReceivedData = function(/* Buffer */ data)
       data = data.slice(offset, data.length);
       this.binaryXmlStructureDecoder = new BinaryXMLStructureDecoder();
       this.tlvStructureDecoder = new TlvStructureDecoder();
-
+      //console.log("calling elementListener", this.elementListener)
       this.elementListener.onReceivedElement(element);
       if (data.length == 0)
         // No more data in the packet.

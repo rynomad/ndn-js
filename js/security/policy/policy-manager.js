@@ -18,7 +18,7 @@
  * A copy of the GNU Lesser General Public License is in the file COPYING.
  */
 
-var crypto = require("crypto");
+var ccrypto = require("crypto");
 var Blob = require('../../util/blob.js').Blob;
 var DataUtils = require('../../encoding/data-utils.js').DataUtils;
 var SecurityException = require('../security-exception.js').SecurityException;
@@ -165,7 +165,7 @@ PolicyManager.verifySha256WithRsaSignature = function
 {
   if (UseSubtleCrypto()){
     var algo = {name:"RSASSA-PKCS1-v1_5",hash:{name:"SHA-256"}};
-
+    console.log(UseSubtleCrypto(), crypto, crypto.subtle)
     crypto.subtle.importKey("spki", publicKeyDer.buf().buffer, algo, true, ["verify"]).then(function(publicKey){
       return crypto.subtle.verify(algo, publicKey, signature.buf(), signedBlob.signedBuf())
     }).then(function(verified){
@@ -207,7 +207,7 @@ PolicyManager.verifyDigestSha256Signature = function
   (signature, signedBlob, onComplete)
 {
   // Set signedPortionDigest to the digest of the signed portion of the signedBlob.
-  var hash = crypto.createHash('sha256');
+  var hash = ccrypto.createHash('sha256');
   hash.update(signedBlob.signedBuf());
   var signedPortionDigest = new Blob(hash.digest(), false);
 

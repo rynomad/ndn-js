@@ -46,12 +46,12 @@ exports.CommandInterestGenerator = CommandInterestGenerator;
  * @param {KeyChain} keyChain The KeyChain for calling sign.
  * @param {Name} certificateName The certificate name of the key to use for
  * signing.
- * @param {WireFormat} wireFormat (optional) A WireFormat object used to encode 
+ * @param {WireFormat} wireFormat (optional) A WireFormat object used to encode
  * the SignatureInfo and to encode interest name for signing. If omitted, use
  * WireFormat.getDefaultWireFormat().
  */
 CommandInterestGenerator.prototype.generate = function
-  (interest, keyChain, certificateName, wireFormat)
+  (interest, keyChain, certificateName, wireFormat, callback)
 {
   wireFormat = (wireFormat || WireFormat.getDefaultWireFormat());
 
@@ -68,7 +68,9 @@ CommandInterestGenerator.prototype.generate = function
   // bytes, so we don't need to call the nonNegativeInteger encoder.
   interest.getName().append(new Blob(require("crypto").randomBytes(8), false));
 
-  keyChain.sign(interest, certificateName, wireFormat);
+  keyChain.sign(interest, certificateName, wireFormat, function(signed){
+    callback(signed);
+  });
 
   if (interest.getInterestLifetimeMilliseconds() == null ||
       interest.getInterestLifetimeMilliseconds() < 0)

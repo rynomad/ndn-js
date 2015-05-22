@@ -62,7 +62,7 @@ var bits_32 = 0x0FFFFFFFF;
 
 
 //returns a string
-tagToString = function(/*long*/ tagVal)
+var tagToString = function(/*long*/ tagVal)
 {
   if (tagVal >= 0 && tagVal < NDNProtocolDTagsStrings.length) {
     return NDNProtocolDTagsStrings[tagVal];
@@ -75,7 +75,7 @@ tagToString = function(/*long*/ tagVal)
 };
 
 //returns a Long
-stringToTag =  function(/*String*/ tagName)
+var stringToTag =  function(/*String*/ tagName)
 {
   // the slow way, but right now we don't care.... want a static lookup for the forward direction
   for (var i=0; i < NDNProtocolDTagsStrings.length; ++i) {

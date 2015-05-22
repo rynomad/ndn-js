@@ -240,7 +240,7 @@ KeyChain.prototype.revokeCertificate = function(certificateName)
  * @returns {IdentityManager} The identity manager.
  */
 KeyChain.prototype.getIdentityManager = function()
-{ 
+{
   return this.identityManager;
 };
 
@@ -253,7 +253,7 @@ KeyChain.prototype.getIdentityManager = function()
  * @returns {PolicyManager} The policy manager.
  */
 KeyChain.prototype.getPolicyManager = function()
-{ 
+{
   return this.policyManager;
 };
 
@@ -297,7 +297,7 @@ KeyChain.prototype.sign = function(target, certificateName, wireFormat, onComple
       (target, certificateName, wireFormat, onComplete);
   else
     return this.identityManager.signByCertificate
-      (target, certificateName, onComplete);
+      (target, certificateName, wireFormat, onComplete);
 };
 
 /**
@@ -389,7 +389,7 @@ KeyChain.prototype.signWithSha256 = function(target, wireFormat)
 };
 
 /**
- * Check the signature on the Data object and call either onVerify or 
+ * Check the signature on the Data object and call either onVerify or
  * onVerifyFailed. We use callback functions because verify may fetch
  * information to check the signature.
  * @param {Data} data The Data object with the signature to check.
@@ -466,7 +466,7 @@ KeyChain.prototype.verifyInterest = function
  * @param {Face} face A pointer to the Face object.
  */
 KeyChain.prototype.setFace = function(face)
-{ 
+{
   this.face = face;
 };
 

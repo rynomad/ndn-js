@@ -287,7 +287,7 @@ Data.prototype.wireEncode = function(wireFormat)
       this.getDefaultWireEncodingFormat() == wireFormat)
     // We already have an encoding in the desired format.
     return this.getDefaultWireEncoding();
-  
+
   var result = wireFormat.encodeData(this);
   var wireEncoding = new SignedBlob
     (result.encoding, result.signedPortionBeginOffset,
@@ -342,19 +342,20 @@ Data.prototype.getSignatureOrMetaInfoKeyLocator = function()
   if (!KeyLocator.canGetFromSignature(this.getSignature()))
     // The signature type doesn't support KeyLocator.
     return new KeyLocator();
-  
   if (this.signature_.get() != null && this.signature_.get().getKeyLocator() != null &&
       this.signature_.get().getKeyLocator().getType() != null &&
       this.signature_.get().getKeyLocator().getType() >= 0)
+
     // The application is using the key locator in the correct object.
     return this.signature_.get().getKeyLocator();
 
   if (this.metaInfo_.get() != null && this.metaInfo_.get().locator != null &&
       this.metaInfo_.get().locator.getType() != null &&
       this.metaInfo_.get().locator.getType() >= 0) {
-    console.log("WARNING: Temporarily using the key locator found in the MetaInfo - expected it in the Signature object.");
-    console.log("WARNING: In the future, the key locator in the Signature object will not be supported.");
+    //console.log("WARNING: Temporarily using the key locator found in the MetaInfo - expected it in the Signature object.");
+    //console.log("WARNING: In the future, the key locator in the Signature object will not be supported.");
     return this.metaInfo_.get().locator;
+
   }
 
   // Return the empty key locator from the Signature object if possible.

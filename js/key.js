@@ -52,7 +52,7 @@ Key.prototype.privateToDER = function()
   // Remove the '-----XXX-----' from the beginning and the end of the key
   // and also remove any \n in the key string
   var lines = this.privateKeyPem.split('\n');
-  priKey = "";
+  var priKey = "";
   for (var i = 1; i < lines.length - 1; i++)
     priKey += lines[i];
 

@@ -168,7 +168,7 @@ BinaryXMLEncoder.prototype.writeAttributes = function(/*TreeMap<String,String>*/
 };
 
 //returns a string
-stringToTag = function(/*long*/ tagVal)
+var stringToTag = function(/*long*/ tagVal)
 {
   if (tagVal >= 0 && tagVal < NDNProtocolDTagsStrings.length)
     return NDNProtocolDTagsStrings[tagVal];
@@ -179,7 +179,7 @@ stringToTag = function(/*long*/ tagVal)
 };
 
 //returns a Long
-tagToString =  function(/*String*/ tagName)
+var tagToString =  function(/*String*/ tagName)
 {
   // the slow way, but right now we don't care.... want a static lookup for the forward direction
   for (var i = 0; i < NDNProtocolDTagsStrings.length; ++i) {

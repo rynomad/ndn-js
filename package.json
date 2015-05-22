@@ -20,7 +20,8 @@
   "browser": {
     "./js/crypto.js": "./js/browserify.js",
     "./js/use-subtle-crypto-node.js":"./js/use-subtle-crypto.js",
-    "./js/transport/tcp-transport.js": "./js/browserify-tcp-transport.js"
+    "./js/transport/tcp-transport.js": "./js/browserify-tcp-transport.js",
+    "rsa-keygen":"./js/rsa-keygen.js"
   },
   "author": "UCLA",
   "license": "LGPL-3.0+",

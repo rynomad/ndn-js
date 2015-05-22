@@ -79,7 +79,7 @@ UnixTransport.ConnectionInfo.prototype.toString = function()
 };
 
 /**
- * Determine whether this transport connecting according to connectionInfo is to 
+ * Determine whether this transport connecting according to connectionInfo is to
  * a node on the current machine. Unix transports are always local.
  * @param {UnixTransport.ConnectionInfo} connectionInfo This is ignored.
  * @param {function} onResult This calls onResult(true) because Unix transports
@@ -127,7 +127,7 @@ UnixTransport.prototype.connect = function
         // Find the end of the packet element and call onReceivedElement.
         thisTransport.elementReader.onReceivedData(buf);
       } catch (ex) {
-        console.log("NDN.UnixTransport.ondata exception: " + ex);
+        console.log("NDN.UnixTransport.ondata exception: " , ex, "\n", ex.stack);
         return;
       }
     }

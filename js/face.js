@@ -538,7 +538,7 @@ Face.prototype.expressInterestWithClosure = function(interest, closure)
       console.log('ERROR: connectionInfo is NOT SET');
     else {
       var thisFace = this;
-      this.connectAndExecute(function() { 
+      this.connectAndExecute(function() {
         thisFace.reconnectAndExpressInterest(pendingInterestId, interest, closure);
       });
     }
@@ -662,7 +662,7 @@ Face.prototype.removePendingInterest = function(pendingInterestId)
 {
   if (pendingInterestId == null)
     return;
-  
+
   // Go backwards through the list so we can erase entries.
   // Remove all entries even though pendingInterestId should be unique.
   var count = 0;
@@ -692,11 +692,11 @@ Face.prototype.removePendingInterest = function(pendingInterestId)
 };
 
 /**
- * Set the KeyChain and certificate name used to sign command interests (e.g. 
+ * Set the KeyChain and certificate name used to sign command interests (e.g.
  * for registerPrefix).
- * @param {KeyChain} keyChain The KeyChain object for signing interests, which 
- * must remain valid for the life of this Face. You must create the KeyChain 
- * object and pass it in. You can create a default KeyChain for your system with 
+ * @param {KeyChain} keyChain The KeyChain object for signing interests, which
+ * must remain valid for the life of this Face. You must create the KeyChain
+ * object and pass it in. You can create a default KeyChain for your system with
  * the default KeyChain constructor.
  * @param {Name} certificateName The certificate name for signing interests.
  * This makes a copy of the Name. You can get the default certificate name with
@@ -711,7 +711,7 @@ Face.prototype.setCommandSigningInfo = function(keyChain, certificateName)
 /**
  * Set the certificate name used to sign command interest (e.g. for
  * registerPrefix), using the KeyChain that was set with setCommandSigningInfo.
- * @param {Name} certificateName The certificate name for signing interest. This 
+ * @param {Name} certificateName The certificate name for signing interest. This
  * makes a copy of the Name.
  */
 Face.prototype.setCommandCertificateName = function(certificateName)
@@ -720,8 +720,8 @@ Face.prototype.setCommandCertificateName = function(certificateName)
 };
 
 /**
- * Append a timestamp component and a random value component to interest's name. 
- * Then use the keyChain and certificateName from setCommandSigningInfo to sign 
+ * Append a timestamp component and a random value component to interest's name.
+ * Then use the keyChain and certificateName from setCommandSigningInfo to sign
  * the interest. If the interest lifetime is not set, this sets it.
  * @note This method is an experimental feature. See the API docs for more
  * detail at
@@ -979,7 +979,7 @@ Face.RegisterResponseClosure.prototype.upcall = function(kind, upcallInfo)
       if (this.onRegisterFailed)
         this.onRegisterFailed(this.prefix);
     }
-    
+
     return Closure.RESULT_OK;
   }
   if (!(kind == Closure.UPCALL_CONTENT ||
@@ -1104,11 +1104,30 @@ Face.prototype.registerPrefixHelper = function
      (this, prefix, closure, onRegisterFailed, flags, BinaryXmlWireFormat.get(), false));
 };
 
+Face.prototype.getRegisterPrefixInterest = function getRegisterPrefixInterest(prefix){
+  var commandInterest = new Interest();
+  commandInterest.setName(new Name("/localhop/nfd/rib/register"));
+  // The host is remote, so set a longer timeout.
+  commandInterest.setInterestLifetimeMilliseconds(4000.0);
+
+
+  var controlParameters = new ControlParameters();
+  controlParameters.setName(prefix);
+
+  // NFD only accepts TlvWireFormat packets.
+  commandInterest.getName().append
+    (controlParameters.wireEncode(TlvWireFormat.get()));
+  this.nodeMakeCommandInterest
+    (commandInterest, this.commandKeyChain, new Name(),
+     TlvWireFormat.get());
+
+}
+
 /**
  * Do the work of registerPrefix to register with NFD.
- * @param {number} registeredPrefixId The 
+ * @param {number} registeredPrefixId The
  * Face.RegisteredPrefix.getNextRegisteredPrefixId() which registerPrefix got so it
- * could return it to the caller. If this is 0, then don't add to 
+ * could return it to the caller. If this is 0, then don't add to
  * registeredPrefixTable (assuming it has already been done).
  * @param {Name} prefix
  * @param {Closure} closure
@@ -1268,7 +1287,7 @@ Face.prototype.isLocal = function(onResult, onError)
  */
 Face.prototype.onReceivedElement = function(element)
 {
-  if (LOG > 3) console.log('Complete element received. Length ' + element.length + '. Start decoding.');
+  //console.log('Complete element received. Length ' + element.length + '. Start decoding.');
   // First, decode as Interest or Data.
   var interest = null;
   var data = null;

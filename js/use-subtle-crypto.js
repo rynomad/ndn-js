@@ -58,6 +58,7 @@ function DetectSubtleCrypto(){
       });
   }
   return function useSubtleCrypto(){
+    console.log(use, crypto, crypto.subtle)
     return use;
   }
 }
